@@ -11,8 +11,12 @@ const int trigPin = 4;
 const int echoPin = 5;
 const int yellowLED = 2;
 const int greenLED = 3;
+const int motorPin = 13;
+const int fanPin = 14;
+const int buttPin = 15;
 
 bool LEDstart = false;
+bool buttPress = false;
 
 #define DHTTYPE DHT11
 DHT dht(dhtPin, DHTTYPE);
@@ -35,6 +39,10 @@ void setup()
 
   pinMode(greenLED, INPUT);
   pinMode(yellowLED, INPUT);
+  
+  pinMode(motorPin, OUTPUT);
+  pinMode(fanPin, OUTPUT);
+  pinMode(buttPin, INPUT);
 
   
   // make sure RTC connected
@@ -51,6 +59,24 @@ void setup()
 
 void loop() 
 {
+  //button stuff
+  while(!buttPress){
+    //occurs as long as the button has not been pressed
+    if(buttPin){
+      //make buttPress true so it does not continue to loop
+      buttPress = true;
+      //turn on motor
+      digitalWrite(motorPin, HIGH);
+      //delay for how long it will take to turn on the faucet, let's say a second
+      delay(1000);
+      //turn off the motor, it should not continously run
+      digitalWrite(motorPin, LOW);
+      
+    }
+    //no else condition, nothing should happen if the botton is not pressed
+    // it doesn't matter if the button is pressed more than once, so no debouncing needed
+  }
+  
   // Temperature
   // 
   // 
@@ -64,7 +90,7 @@ void loop()
     lcd.print("ERROR");
     return;
   }
-
+  
   // print temp to LCD
   lcd.setCursor(0,0); 
   lcd.print("Temp = ");
@@ -110,6 +136,8 @@ void loop()
   }
   
   
+  
+  
   // Prints "Distance: <value>" on the second line of the LCD
   // for debugging purposes right now
   lcd.setCursor(0,1);
@@ -143,6 +171,8 @@ void loop()
   // 
   // End RTC Module
 
+  //resetting stuff
+  
 
 
 // ignore for now

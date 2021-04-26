@@ -30,19 +30,23 @@ void setup()
   dht.begin();
   rtc.begin();
 
-  if (! rtc.begin()) {
-    Serial.println("ERROR: RTC not connected");
-    Serial.flush();
-    abort();
-  }
-
   pinMode(trigPin, OUTPUT);
   pinMode(echoPin, INPUT);
 
   pinMode(greenLED, INPUT);
   pinMode(yellowLED, INPUT);
 
+  
+  // make sure RTC connected
+  if (! rtc.begin()) {
+    Serial.println("ERROR: RTC not connected");
+    Serial.flush();
+    abort();
+  }
+  
+  // adjust time to match device code is compiled on
   rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
+  
 }
 
 void loop() 
@@ -107,6 +111,7 @@ void loop()
   
   
   // Prints "Distance: <value>" on the second line of the LCD
+  // for debugging purposes right now
   lcd.setCursor(0,1);
   lcd.print("Distance: "); 
   lcd.print(distance);
@@ -115,12 +120,13 @@ void loop()
   // 
   // End Ultrasonic Sensor
 
+  
   // RTC Module
   // 
   // 
   DateTime now = rtc.now();
 
-  /*
+  
   Serial.print(now.hour(), DEC);
   Serial.print(":");
   Serial.print(now.minute(), DEC);
@@ -133,14 +139,14 @@ void loop()
   Serial.print("/");
   Serial.print(now.year(), DEC);
   Serial.println(")");
-  */
   // 
   // 
   // End RTC Module
 
 
 
-
+// ignore for now
+  
   /*if((*pin_? & 1) == 0) // button pin is 0
     // do nothing
   else

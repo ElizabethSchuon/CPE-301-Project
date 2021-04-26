@@ -44,7 +44,7 @@ void setup()
     abort();
   }
   
-  // adjust time to match device code is compiled on
+  // adjust time to match device that the code is compiled on
   rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
   
 }

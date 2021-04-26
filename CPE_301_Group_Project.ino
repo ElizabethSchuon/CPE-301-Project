@@ -12,6 +12,7 @@ const int echoPin = 5;
 const int yellowLED = 2;
 const int greenLED = 3;
 const int motorPin = 13;
+//the numbering on these two needs fixing
 const int fanPin = 14;
 const int buttPin = 15;
 
@@ -65,12 +66,8 @@ void loop()
     if(buttPin){
       //make buttPress true so it does not continue to loop
       buttPress = true;
-      //turn on motor
+      //turn on motor to simulate water running
       digitalWrite(motorPin, HIGH);
-      //delay for how long it will take to turn on the faucet, let's say a second
-      delay(1000);
-      //turn off the motor, it should not continously run
-      digitalWrite(motorPin, LOW);
       
     }
     //no else condition, nothing should happen if the botton is not pressed
@@ -122,6 +119,7 @@ void loop()
   
   if(distance <= 10)
   {
+    //is this your conditional statement where you turn the green LED on
     LEDstart = true;
     digitalWrite(greenLED, HIGH);
     digitalWrite(yellowLED, LOW);

@@ -196,16 +196,18 @@ void loop()
   //end of illustrative loop
 
   //there are some things that will need to be done after exiting the loop /ES
-  /*
+  
     //regardless the water gets turned on
     digitalWrite(motorPin, LOW);
-
+    //only if sucesfull exit does the green LED and fan get turned on
     if(handsIn == 30){
-      //only if sucesfull exit does the green LED and fan get turned on
       digitalWrite(greenLED, HIGH);
       digitalWrite(fanPin, HIGH);
+      //I think delay has a 1000 max
+      for(int i = 0; i < 15; i++){
+        delay(1000);
+      }
     }
-  */
 
   
   // RTC Module
@@ -231,7 +233,12 @@ void loop()
 
   //resetting stuff
     //turn off fan
+    digitalWrite(fanPin, LOW);
+    //make sure motor is off
+    digitalWrite(motorPin, LOW);
     //turn off LEDs
+    digitalWrite(greenLED, LOW);
+    digitalWrite(yellowLED, LOW);
     //I don't know exactly what may need to be turned of for the ultrasonic and tempurature things /ES
     //turn off any ultrasonic stuff
     //turn off tempurature display

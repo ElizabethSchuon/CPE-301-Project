@@ -31,7 +31,8 @@ const int buttPin = 15;
 bool LEDstart = false;
 bool buttPress = false;
 //this is the variable I am using in the loop thing below /ES
-int sensorCheck = 0;
+int handsIn = 0;
+int handsOut = 0;
 
 #define DHTTYPE DHT11
 DHT dht(dhtPin, DHTTYPE);
@@ -82,51 +83,50 @@ void loop()
       buttPress = true;
       //turn on motor to simulate water running
       digitalWrite(motorPin, HIGH);
-      
     }
     //no else condition, nothing should happen if the botton is not pressed 
     //it doesn't matter if the button is pressed more than once, so no debouncing needed 
   }
   
   //needs to be in a loop for if hands are in place, i think that this is all that will need to be coninously updated /ES
-      // Temperature
-      // 
-      // 
-        lcd.clear();
-        // read temperature in Fahrenheit
-        float f = dht.readTemperature(true);
+    // Temperature
+    // 
+    // 
+      lcd.clear();
+      // read temperature in Fahrenheit
+      float f = dht.readTemperature(true);
 
-        // check for error
+      // check for error
         if (isnan(f)) 
         {
           lcd.print("ERROR");
           return;
         }
   
-        // print temp to LCD
+      // print temp to LCD
         lcd.setCursor(0,0); 
         lcd.print("Temp = ");
         lcd.print(f);
         lcd.print(" F");
-      // 
-      // 
-      // End Temperature
+    // 
+    // 
+    // End Temperature
 
-      // Ultrasonic Sensor
-      //
-      // 
-        // Write a pulse to the HC-SR04 Trigger Pin
+    // Ultrasonic Sensor
+    //
+    // 
+      // Write a pulse to the HC-SR04 Trigger Pin
         digitalWrite(trigPin, LOW);
         delayMicroseconds(2);
         digitalWrite(trigPin, HIGH);
         delayMicroseconds(10);
         digitalWrite(trigPin, LOW);
   
-        // Measure the response from the HC-SR04 Echo Pin
+      // Measure the response from the HC-SR04 Echo Pin
         duration = pulseIn(echoPin, HIGH);
   
-        // Determine distance from duration
-        // Use 343 metres per second as speed of sound
+      // Determine distance from duration
+      // Use 343 metres per second as speed of sound
         distance = duration*0.034/2;
   
         if(distance <= 10)
@@ -145,27 +145,29 @@ void loop()
           digitalWrite(yellowLED, LOW);
         }
   
-        // Prints "Distance: <value>" on the second line of the LCD
-        // for debugging purposes right now
+      // Prints "Distance: <value>" on the second line of the LCD
+      // for debugging purposes right now
         lcd.setCursor(0,1);
         lcd.print("Distance: "); 
         lcd.print(distance);
         lcd.print(" cm");
-      // 
-      // 
-      // End Ultrasonic Sensor
+    // 
+    // 
+    // End Ultrasonic Sensor
   
   //I am going to make kinda a part code part psudo code loop here to illistrate /ES
   //
   /*
-    while(sensorCheck <= 30){
+    while(handsIn < 30 && handsOut < 15){
       update the tempurature output of water
       measure distance with ultrasonic sensor
       if( hands in range){
         sensorCheck++;
+        handsOut = 0;
       }
       else{
         sensorCheck = 0;
+        handsOut++;
       }
       delay(1000);
       //I set it to delay one second /ES
@@ -175,6 +177,7 @@ void loop()
   */
   //
   //end of illustrative loop
+
   
     // RTC Module
     // 
@@ -206,8 +209,7 @@ void loop()
     //Turn off tempurature sensor
 
 
-// ignore for now /JF
-  
+  // ignore for now /JF
   /*if((*pin_? & 1) == 0) // button pin is 0
     // do nothing
   else

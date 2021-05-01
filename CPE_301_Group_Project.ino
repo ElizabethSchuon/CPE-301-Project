@@ -60,6 +60,8 @@ void setup()
   pinMode(fanPin, OUTPUT);
   pinMode(buttPin, INPUT);
 
+  //should we initilize motor and LED pins to their off states? /ES
+
   
   // make sure RTC connected
   if (! rtc.begin()) {
@@ -88,7 +90,7 @@ void loop()
     //it doesn't matter if the button is pressed more than once, so no debouncing needed 
   }
   
-  //needs to be in a loop for if hands are in place, i think that this is all that will need to be coninously updated /ES
+  //tempurature should be continously updated in a loop until hands are in range /ES
     // Temperature
     // 
     // 
@@ -111,10 +113,20 @@ void loop()
     // 
     // 
     // End Temperature
+  
+  //temp display loop
+  /*
+    while(! hands in range){
+      update display with tempurature
+    }
+  */
 
+  //needs to be in a loop for if hands are in place
+  //I think that this is all that will need to be coninously updated /ES
     // Ultrasonic Sensor
     //
     // 
+    //may be useful to encapsulate the first three sections into a function
       // Write a pulse to the HC-SR04 Trigger Pin
         digitalWrite(trigPin, LOW);
         delayMicroseconds(2);
@@ -158,16 +170,21 @@ void loop()
   //I am going to make kinda a part code part psudo code loop here to illistrate /ES
   //
   /*
-    while(handsIn < 30 && handsOut < 15){
-      update the tempurature output of water
+    while(handsIn < 30 && handsOut < 10){
       measure distance with ultrasonic sensor
       if( hands in range){
         sensorCheck++;
         handsOut = 0;
+        have
       }
       else{
         sensorCheck = 0;
         handsOut++;
+        digitalWrite(greenLED, LOW);
+        digitalWrite(yellowLED, HIGH);
+        delay(500);
+        digitalWrite(yellowLED, LOW);
+        
       }
       delay(1000);
       //I set it to delay one second /ES
@@ -178,27 +195,39 @@ void loop()
   //
   //end of illustrative loop
 
+  //there are some things that will need to be done after exiting the loop /ES
+  /*
+    //regardless the water gets turned on
+    digitalWrite(motorPin, LOW);
+
+    if(handsIn == 30){
+      //only if sucesfull exit does the green LED and fan get turned on
+      digitalWrite(greenLED, HIGH);
+      digitalWrite(fanPin, HIGH);
+    }
+  */
+
   
-    // RTC Module
-    // 
-    // 
-      DateTime now = rtc.now();
+  // RTC Module
+  // 
+  // 
+    DateTime now = rtc.now();
   
-      Serial.print(now.hour(), DEC);
-      Serial.print(":");
-      Serial.print(now.minute(), DEC);
-      Serial.print(":");
-      Serial.print(now.second(), DEC);
-      Serial.print(" (");
-      Serial.print(now.month(), DEC);
-      Serial.print("/");
-      Serial.print(now.day(), DEC);
-      Serial.print("/");
-      Serial.print(now.year(), DEC);
-      Serial.println(")");
-    // 
-    // 
-    // End RTC Module
+    Serial.print(now.hour(), DEC);
+    Serial.print(":");
+    Serial.print(now.minute(), DEC);
+    Serial.print(":");
+    Serial.print(now.second(), DEC);
+    Serial.print(" (");
+    Serial.print(now.month(), DEC);
+    Serial.print("/");
+    Serial.print(now.day(), DEC);
+    Serial.print("/");
+    Serial.print(now.year(), DEC);
+    Serial.println(")");
+  // 
+  // 
+  // End RTC Module
 
   //resetting stuff
     //turn off fan

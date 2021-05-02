@@ -5,7 +5,7 @@ Elizabeth Schuon
 Jullian Flienger
 -----------------------------------
 Comment notes:
-All self doccumenting comments with a space betwen the '//' and the comment were made by Jullian
+All self doccumenting comments with a space betwen the '//' and the comment were made by Julian
 All self doccumenting comments without one were made by Elizabeth
 Comments directed at eachother in the code are signed with a /ES or /JF corrisponding to the person who wrote them
 */
@@ -237,18 +237,3 @@ void loop()
     //turn off tempurature display
     //Turn off tempurature sensor
 
-
-  // ignore for now /JF
-  /*if((*pin_? & 1) == 0) // button pin is 0
-    // do nothing
-  else
-    start();*/
-}
-
-/* void start(){
-  // turn on motor
-    // set stepper pins to outputs
-    *ddr_? |= 0x00 << /*pin numbers;
-    *port_? |= 1 << step_number;
-    step_number++; 
-}*/

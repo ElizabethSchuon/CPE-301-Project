@@ -1,3 +1,17 @@
+/*
+CPE 301 Group Project
+Spring 2021
+Elizabeth Schuon
+Julian Flienger
+-----------------------------------
+Comment notes:
+All self doccumenting comments with a space betwen the '//' and the comment were made by Julian
+All self doccumenting comments without one were made by Elizabeth
+Comments directed at eachother in the code are signed with a /ES or /JF corrisponding to the person who wrote them
+*/
+//we are required to have a header
+//Why does this file not have a file type?
+
 // libraries
 #include <LiquidCrystal.h>
 #include <Servo.h>
@@ -107,9 +121,11 @@ void loop()
   // 
   // End Temperature
 
+
   // Ultrasonic Sensor
   //
   // 
+  //I think all the ultrasonic stuff only happens once as it is setup right now? /ES
   // Write a pulse to the HC-SR04 Trigger Pin
   digitalWrite(trigPin, LOW);
   delayMicroseconds(2);
@@ -182,14 +198,14 @@ void loop()
 
   // Fan 
   // 
-  // 
+  // why is this all commented out /ES
   // fan on 
   // digitalWrite(enablePin,HIGH); //enable on
   // digitalWrite(dirPin,HIGH); //one way
 
   // fan off 
-  //digitalWrite(enablePin,LOW);
-  //digitalWrite(enablePin,LOW)
+  // digitalWrite(enablePin,LOW);
+  // digitalWrite(enablePin,LOW);
   // 
   // 
   // End Fan 
@@ -239,6 +255,7 @@ void countdown(int sec)
 void reset()
 {
 // placeholder for now
+//When resetting we should make sure to set all motors and LEDs to off states /ES
   bool warning = false;
   bool buttonPress = false;
   bool handsPresent = false;

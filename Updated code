@@ -107,7 +107,7 @@ void loop()
   // 
   // End Temperature
 
-// Ultrasonic Sensor
+  // Ultrasonic Sensor
   //
   // 
   // Write a pulse to the HC-SR04 Trigger Pin
@@ -183,11 +183,11 @@ void loop()
   // Fan 
   // 
   // 
- // fan on 
- // digitalWrite(enablePin,HIGH); //enable on
- // digitalWrite(dirPin,HIGH); //one way
+  // fan on 
+  // digitalWrite(enablePin,HIGH); //enable on
+  // digitalWrite(dirPin,HIGH); //one way
 
- // fan off 
+  // fan off 
   //digitalWrite(enablePin,LOW);
   //digitalWrite(enablePin,LOW)
   // 

@@ -1,38 +1,41 @@
-/*
-CPE 301 Group Project
-Spring 2021
-Elizabeth Schuon
-Jullian Flienger
------------------------------------
-Comment notes:
-All self doccumenting comments with a space betwen the '//' and the comment were made by Julian
-All self doccumenting comments without one were made by Elizabeth
-Comments directed at eachother in the code are signed with a /ES or /JF corrisponding to the person who wrote them
-*/
-
 // libraries
 #include <LiquidCrystal.h>
+#include <Servo.h>
 #include "DHT.h"
 #include "RTClib.h"
 
+// registers
+volatile unsigned char *myTCCR1A = (unsigned char *) 0x80;
+volatile unsigned char *myTCCR1B = (unsigned char *) 0x81;
+volatile unsigned char *myTCCR1C = (unsigned char *) 0x82;
+volatile unsigned char *myTIMSK1 = (unsigned char *) 0x6F;
+volatile unsigned int  *myTCNT1  = (unsigned  int *) 0x84;
+volatile unsigned char *myTIFR1 =  (unsigned char *) 0x36;
+
+// port F pins A0-A7
+volatile unsigned char* port_f = (unsigned char*) 0x31; 
+volatile unsigned char* ddr_f = (unsigned char*) 0x30; 
+volatile unsigned char* pin_f  = (unsigned char*) 0x2F; 
+
+// objects and globals
+int ticks = 0;
 
 LiquidCrystal lcd(6, 7, 8, 9, 10, 11);
 
 const int dhtPin = 12;
 const int trigPin = 4;
 const int echoPin = 5;
-const int yellowLED = 2;
+const int redLED = 2;
 const int greenLED = 3;
-const int motorPin = 13;
-//the numbering on these two needs fixing
-const int fanPin = 14;
-const int buttPin = 15;
+const int enablePin = 52;
+const int dirPin = 53;
 
-bool LEDstart = false;
-bool buttPress = false;
-//this is the variable I am using in the loop thing below /ES
-int handsIn = 0;
-int handsOut = 0;
+Servo motor;
+int pos = 0;
+
+bool warning = false;
+bool buttonPress = false;
+bool handsPresent = false;
 
 #define DHTTYPE DHT11
 DHT dht(dhtPin, DHTTYPE);
@@ -50,18 +53,17 @@ void setup()
   dht.begin();
   rtc.begin();
 
+  *ddr_f &= 0b11111110; // set A0 as input
+  *port_f |= 0b00000001; // enable pullups
+
   pinMode(trigPin, OUTPUT);
   pinMode(echoPin, INPUT);
 
   pinMode(greenLED, INPUT);
-  pinMode(yellowLED, INPUT);
-  
-  pinMode(motorPin, OUTPUT);
-  pinMode(fanPin, OUTPUT);
-  pinMode(buttPin, INPUT);
+  pinMode(redLED, INPUT);
 
-  //should we initilize motor and LED pins to their off states? /ES
-
+  pinMode(enablePin,OUTPUT);
+  pinMode(dirPin,OUTPUT);
   
   // make sure RTC connected
   if (! rtc.begin()) {
@@ -72,175 +74,170 @@ void setup()
   
   // adjust time to match device that the code is compiled on
   rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
-  
+
+  motor.attach(43);
 }
 
 void loop() 
 {
-  //button stuff
-  while(!buttPress){
-    //occurs as long as the button has not been pressed 
-    if(buttPin){
-      //make buttPress true so it does not continue to loop
-      buttPress = true;
-      //turn on motor to simulate water running
-      digitalWrite(motorPin, HIGH);
-    }
-    //no else condition, nothing should happen if the botton is not pressed 
-    //it doesn't matter if the button is pressed more than once, so no debouncing needed 
+  if((*pin_f & 1)==0){
+    buttonPress = true;
   }
   
-  //tempurature should be continously updated in a loop until hands are in range /ES
-    // Temperature
-    // 
-    // 
-      lcd.clear();
-      // read temperature in Fahrenheit
-      float f = dht.readTemperature(true);
+  // Temperature
+  // 
+  // 
+  // read temperature in Fahrenheit
+  float f = dht.readTemperature(true);
 
-      // check for error
-        if (isnan(f)) 
-        {
-          lcd.print("ERROR");
-          return;
-        }
-  
-      // print temp to LCD
-        lcd.setCursor(0,0); 
-        lcd.print("Temp = ");
-        lcd.print(f);
-        lcd.print(" F");
-    // 
-    // 
-    // End Temperature
-  
-  //temp display loop
-  /*
-    while(! hands in range){
-      update display with tempurature
-    }
-  */
+  // check for error
+  if (isnan(f)) 
+  {
+    lcd.setCursor(0,0); 
+    lcd.print("ERROR");
+    return;
+  }
 
-  //needs to be in a loop for if hands are in place
-  //I think that this is all that will need to be coninously updated /ES
-    // Ultrasonic Sensor
-    //
-    // 
-    //may be useful to encapsulate the first three sections into a function
-      // Write a pulse to the HC-SR04 Trigger Pin
-        digitalWrite(trigPin, LOW);
-        delayMicroseconds(2);
-        digitalWrite(trigPin, HIGH);
-        delayMicroseconds(10);
-        digitalWrite(trigPin, LOW);
-  
-      // Measure the response from the HC-SR04 Echo Pin
-        duration = pulseIn(echoPin, HIGH);
-  
-      // Determine distance from duration
-      // Use 343 metres per second as speed of sound
-        distance = duration*0.034/2;
-  
-        if(distance <= 10)
-        {
-          //is this your conditional statement where you turn the green LED on /ES
-          LEDstart = true;
-          digitalWrite(greenLED, HIGH);
-          digitalWrite(yellowLED, LOW);
-        }
-  
-        if(distance > 10 && LEDstart)
-        {
-          digitalWrite(greenLED, LOW);
-          digitalWrite(yellowLED, HIGH);
-          delay(500);
-          digitalWrite(yellowLED, LOW);
-        }
-  
-      // Prints "Distance: <value>" on the second line of the LCD
-      // for debugging purposes right now
-        lcd.setCursor(0,1);
-        lcd.print("Distance: "); 
-        lcd.print(distance);
-        lcd.print(" cm");
-    // 
-    // 
-    // End Ultrasonic Sensor
-  
-  //I am going to make kinda a part code part psudo code loop here to illistrate /ES
+  // print temp to LCD
+  lcd.setCursor(0,0); 
+  lcd.print("Temp = ");
+  lcd.print(f);
+  lcd.print(" F");
+  // 
+  // 
+  // End Temperature
+
+// Ultrasonic Sensor
   //
-  /*
-    while(handsIn < 30 && handsOut < 10){
-      measure distance with ultrasonic sensor
-      if( hands in range){
-        sensorCheck++;
-        handsOut = 0;
-        have
-      }
-      else{
-        sensorCheck = 0;
-        handsOut++;
-        digitalWrite(greenLED, LOW);
-        digitalWrite(yellowLED, HIGH);
-        delay(500);
-        digitalWrite(yellowLED, LOW);
-        
-      }
-      delay(1000);
-      //I set it to delay one second /ES
-      //could be more or less frequent if desired /ES
-      //If delay changes the 30 will need to change /ES
-    }
-  */
-  //
-  //end of illustrative loop
-
-  //there are some things that will need to be done after exiting the loop /ES
+  // 
+  // Write a pulse to the HC-SR04 Trigger Pin
+  digitalWrite(trigPin, LOW);
+  delayMicroseconds(2);
+  digitalWrite(trigPin, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trigPin, LOW);
   
-    //regardless the water gets turned on
-    digitalWrite(motorPin, LOW);
-    //only if sucesfull exit does the green LED and fan get turned on
-    if(handsIn == 30){
-      digitalWrite(greenLED, HIGH);
-      digitalWrite(fanPin, HIGH);
-      //I think delay has a 1000 max
-      for(int i = 0; i < 15; i++){
-        delay(1000);
-      }
-    }
-
+  // Measure the response from the HC-SR04 Echo Pin
+  duration = pulseIn(echoPin, HIGH);
   
+  // Determine distance from duration
+  // Use 343 metres per second as speed of sound
+  distance = duration*0.034/2;
+    
+  if(distance <= 10 && distance > 0)
+  {
+    handsPresent = true;
+    warning = true;
+    digitalWrite(greenLED, HIGH);
+    digitalWrite(redLED, LOW);
+  }
+  
+  if(distance > 10 && warning)
+  {
+    handsPresent = false;
+    digitalWrite(greenLED, LOW);
+    digitalWrite(redLED, HIGH);
+    my_delay(100000);
+    digitalWrite(redLED, LOW);
+    my_delay(100000);
+  }
+  
+  // Prints "Distance: <value>" on the second line of the LCD
+  lcd.setCursor(0,1);
+  lcd.print("Distance: "); 
+  lcd.print(distance);
+  lcd.print(" cm");
+  // 
+  // 
+  // End Ultrasonic Sensor
+
+  if(buttonPress & !handsPresent){
+    motorOn();
+  }
+
+ 
+
   // RTC Module
   // 
   // 
-    DateTime now = rtc.now();
+  DateTime now = rtc.now();
+  //delay(1000);
   
-    Serial.print(now.hour(), DEC);
-    Serial.print(":");
-    Serial.print(now.minute(), DEC);
-    Serial.print(":");
-    Serial.print(now.second(), DEC);
-    Serial.print(" (");
-    Serial.print(now.month(), DEC);
-    Serial.print("/");
-    Serial.print(now.day(), DEC);
-    Serial.print("/");
-    Serial.print(now.year(), DEC);
-    Serial.println(")");
+  Serial.print(now.hour(), DEC);
+  Serial.print(":");
+  Serial.print(now.minute(), DEC);
+  Serial.print(":");
+  Serial.print(now.second(), DEC);
+  Serial.print(" (");
+  Serial.print(now.month(), DEC);
+  Serial.print("/");
+  Serial.print(now.day(), DEC);
+  Serial.print("/");
+  Serial.print(now.year(), DEC);
+  Serial.println(")");
   // 
   // 
   // End RTC Module
 
-  //resetting stuff
-    //turn off fan
-    digitalWrite(fanPin, LOW);
-    //make sure motor is off
-    digitalWrite(motorPin, LOW);
-    //turn off LEDs
-    digitalWrite(greenLED, LOW);
-    digitalWrite(yellowLED, LOW);
-    //I don't know exactly what may need to be turned of for the ultrasonic and tempurature things /ES
-    //turn off any ultrasonic stuff
-    //turn off tempurature display
-    //Turn off tempurature sensor
 
+  // Fan 
+  // 
+  // 
+ // fan on 
+ // digitalWrite(enablePin,HIGH); //enable on
+ // digitalWrite(dirPin,HIGH); //one way
+
+ // fan off 
+  //digitalWrite(enablePin,LOW);
+  //digitalWrite(enablePin,LOW)
+  // 
+  // 
+  // End Fan 
+
+}
+
+void motorOn(){
+  for (pos = 0; pos <= 100; pos += 1) { // goes from 0 degrees to 100 degrees
+    // in steps of 1 degree
+    motor.write(pos);              // tell servo to go to position in variable 'pos'
+    my_delay(1500);                    
+  }
+  for (pos = 100; pos >= 0; pos -= 1) { // goes from 100 degrees to 0 degrees
+    motor.write(pos);              // tell servo to go to position in variable 'pos'
+    my_delay(1500);                      
+  }
+}
+
+void my_delay(unsigned int ticks)
+{
+  // stop timer
+  *myTCCR1B &= 0xF8; 
+  // set counts 
+  *myTCNT1 = (unsigned int) (65536 - ticks);
+  // set normal mode
+  *myTCCR1A &= 0x00;
+  // set prescaler (4), start timer 
+  *myTCCR1B |= 0x04; 
+  // wait for overflow flag
+  while((*myTIFR1 & 0x01)== 0);
+  // stop timer
+  *myTCCR1B &=0xF8;
+  // reset TOV
+  *myTIFR1 |= 0x01;
+}
+
+void countdown(int sec)
+{
+  for(int i=sec; i>0; --i){
+    lcd.print(i);
+    lcd.print("seconds");
+    my_delay(1000); // delay one sec
+  }
+}
+
+void reset()
+{
+  bool warning = false;
+  bool buttonPress = false;
+  bool handsPresent = false;
+}
